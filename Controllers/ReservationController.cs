@@ -37,12 +37,21 @@ namespace HotelApiRest.Controllers
             return Ok(reservation);
         }
 
-        // POST: api/Reservation
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Reservation reservation)
         {
+            // Verificar disponibilidad mediante SOAP antes de crear la reserva
+            bool isAvailable = await CheckRoomAvailability(reservation.room_number, reservation.start_date, reservation.end_date);
+
+            if (!isAvailable)
+            {
+                return BadRequest("La habitación no está disponible en las fechas seleccionadas.");
+            }
+
+            // Si está disponible, crear la reserva
             _context.Reservations.Add(reservation);
             await _context.SaveChangesAsync();
+
             return CreatedAtAction(nameof(GetById), new { id = reservation.reservation_id }, reservation);
         }
 
@@ -86,5 +95,40 @@ namespace HotelApiRest.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        private async Task<bool> CheckRoomAvailability(int roomId, DateTime startDate, DateTime endDate)
+        {
+            var soapEnvelope = $@"
+        <soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:tem='http://tempuri.org/'>
+           <soapenv:Header/>
+           <soapenv:Body>
+              <tem:GetAvailableRooms>
+                 <tem:roomType></tem:roomType>
+                 <tem:status>disponible</tem:status>
+                 <tem:startDate>{startDate:yyyy-MM-dd}</tem:startDate>
+                 <tem:endDate>{endDate:yyyy-MM-dd}</tem:endDate>
+              </tem:GetAvailableRooms>
+           </soapenv:Body>
+        </soapenv:Envelope>";
+
+            using (var httpClient = new HttpClient())
+            {
+                var httpContent = new StringContent(soapEnvelope, System.Text.Encoding.UTF8, "text/xml");
+
+                // Dirección del servicio SOAP
+                var response = await httpClient.PostAsync("http://localhost:5000/AvailabilityService.asmx", httpContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    // Verificar si el XML contiene la habitación disponible (por ejemplo, roomId)
+                    return responseContent.Contains($"<RoomId>{roomId}</RoomId>");
+                }
+
+                return false;
+            }
+        }
+
     }
 }
