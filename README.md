@@ -7,6 +7,7 @@ Antes de ejecutar la API, asegúrate de cumplir con los siguientes requisitos:
 1. **.NET 8 SDK**: Asegúrate de tener instalado .NET 8 en tu computadora. Puedes descargarlo desde [aquí](https://dotnet.microsoft.com/download/dotnet/8.0).
 2. **Base de Datos**: Se requiere que ejecutes el script SQL para crear la tabla `Reservation` antes de ejecutar la API.
 3. **Cadena de Conexión**: Actualiza la cadena de conexión en el archivo appsettings.json para que apunte a tu base de datos local.
+4. **URL del Servicio SOAP**: Edita la URL del servicio SOAP en el controlador de las Reservas para que apunte a la URL donde se levanto el servicio ya que el puerto suele cambiar.
 
 ## Configuración de la Base de Datos
 
