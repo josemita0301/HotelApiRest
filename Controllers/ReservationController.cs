@@ -116,7 +116,7 @@ namespace HotelApiRest.Controllers
                 var httpContent = new StringContent(soapEnvelope, System.Text.Encoding.UTF8, "text/xml");
 
                 // Dirección del servicio SOAP
-                var response = await httpClient.PostAsync("http://localhost:5000/AvailabilityService.asmx", httpContent);
+                var response = await httpClient.PostAsync("https://localhost:7129/AvailabilityService.asmx", httpContent);
 
                 if (response.IsSuccessStatusCode)
                 {
